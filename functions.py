@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import os
 
 def objective(X: np.ndarray, Y: np.ndarray, theta: np.ndarray):
     u = 1 / (1 + np.exp(X @ -theta)) # predicted probability
@@ -10,6 +12,28 @@ def gradient(Xi: np.ndarray, Yi: np.ndarray, theta: np.ndarray):
     u = 1 / (1 + np.exp(-theta.T @ Xi)) # predicted probability
     grad = -(Yi - u) * Xi # gradient
     return grad
+
+def plot_nlls(num_epochs: list[int], train_nlls: list[float], val_nlls: list[float], fig_size=(6.4, 4.8)) -> None:
+    
+    if not os.path.isdir('./figures'):
+        os.mkdir('./figures')
+
+    # create a new figure, to avoid duplicating with figure in previous plots
+    plt.figure(figsize=fig_size) 
+
+    # add title and labels and title
+    plt.title('Average Negative Log Likelihood vs. Number of Epochs')
+    plt.xlabel('Number of epochs')
+    # plt.xticks(num_epochs)
+    plt.ylabel('Average negative log likelihood')
+    
+    # add train and error plots here: students write the below 2 lines
+    plt.plot(num_epochs, train_nlls, label='training')
+    plt.plot(num_epochs, val_nlls, label='validation')
+    
+    # show legends and save figure
+    plt.legend() # show legend
+    plt.savefig('./figures/nlls.png') # save figure for comparison
 
 def train(X_train: np.ndarray, Y_train: np.ndarray, theta0: np.ndarray, num_epochs: int, lr: float):
     numSamples, numFeatures = X_train.shape
@@ -39,7 +63,7 @@ def error_rate(y: np.ndarray, y_hat: np.ndarray):
         if y_i != y_hat_i: misclassified += 1
     return misclassified / N
 
-def train_and_val(X_train: np.ndarray, Y_train: np.ndarray, X_val: np.ndarray, Y_val: np.ndarray, num_epochs: int, lr: float):
+def train_and_val(X_train: np.ndarray, Y_train: np.ndarray, X_val: np.ndarray, Y_val: np.ndarray, num_epochs: int, lr: float, visualize_nlls: bool = True):
     theta0 = np.zeros((X_train.shape[1], 1))  # initialize theta to zeros
 
     # train the model
@@ -67,6 +91,10 @@ def train_and_val(X_train: np.ndarray, Y_train: np.ndarray, X_val: np.ndarray, Y
     Y_val_hat = predict(X_val, best_theta)
     train_error = error_rate(Y_train, Y_train_hat)
     val_error = error_rate(Y_val, Y_val_hat)
+
+    if visualize_nlls:
+        num_epochs = [i for i in range(num_epochs + 1)]
+        plot_nlls(num_epochs, train_nlls, val_nlls)
 
     return {
         'best_theta': best_theta,         # best parameters
