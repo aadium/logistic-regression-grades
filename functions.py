@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 def objective(X: np.ndarray, Y: np.ndarray, theta: np.ndarray):
@@ -40,7 +39,9 @@ def error_rate(y: np.ndarray, y_hat: np.ndarray):
         if y_i != y_hat_i: misclassified += 1
     return misclassified / N
 
-def train_and_val(X_train: np.ndarray, Y_train: np.ndarray, X_val: np.ndarray, Y_val: np.ndarray, theta0: np.ndarray, num_epochs: int, lr: float):
+def train_and_val(X_train: np.ndarray, Y_train: np.ndarray, X_val: np.ndarray, Y_val: np.ndarray, num_epochs: int, lr: float):
+    theta0 = np.zeros((X_train.shape[1], 1))  # initialize theta to zeros
+
     # train the model
     theta_history = train(X_train, Y_train, theta0, num_epochs, lr)
 
@@ -76,65 +77,3 @@ def train_and_val(X_train: np.ndarray, Y_train: np.ndarray, X_val: np.ndarray, Y
         'val_error': val_error,           # val error of the model with the best parameters
         'theta_history': theta_history    # list of parameters produced at each epoch
     }
-
-num_epochs = 1000
-lr = 0.05
-
-# Example: Student passing grades prediction
-# Features: [bias, math_score, english_score]
-# Label: 1 = pass, 0 = fail
-# Rescale function for feature columns (excluding bias)
-def rescale_matrix(X):
-    X = np.array(X, dtype=float)
-    X_scaled = X.copy()
-    # Exclude bias (first column)
-    for col in range(1, X.shape[1]):
-        min_val = X[:, col].min()
-        max_val = X[:, col].max()
-        if max_val > min_val:
-            X_scaled[:, col] = (X[:, col] - min_val) / (max_val - min_val)
-        else:
-            X_scaled[:, col] = 0.0
-    return X_scaled
-
-# You can now modify these arrays as you wish, then call rescale_matrix()
-toy_X_train = np.array([
-    [1.0, 40, 60],   # fail (low math)
-    [1.0, 55, 45],   # fail (low math)
-    [1.0, 65, 50],   # pass (math above 60)
-    [1.0, 80, 30],   # pass (high math, low english)
-    [1.0, 50, 80],   # fail (math not enough)
-    [1.0, 90, 90],   # pass (high both)
-])
-toy_X_train = rescale_matrix(toy_X_train)
-toy_Y_train = np.array([[0], [0], [1], [1], [0], [1]])
-toy_X_val = np.array([
-    [1.0, 60, 40],   # pass (math just enough)
-    [1.0, 45, 85],   # fail (math too low)
-])
-toy_X_val = rescale_matrix(toy_X_val)
-toy_Y_val = np.array([[1], [0]])
-toy_X_test = np.array([
-    [1.0, 70, 60],   # pass
-    [1.0, 55, 90],   # fail
-    [1.0, 85, 40],   # pass
-    [1.0, 50, 50],   # fail
-    [1.0, 75, 85],   # pass
-])
-toy_X_test = rescale_matrix(toy_X_test)
-# Update experimental parameters for new feature size
-num_features = toy_X_train.shape[1]
-theta0 = np.array([[0.0], [0.0], [0.0]])
-
-# training and validation
-output = train_and_val(X_train=toy_X_train, 
-                       Y_train=toy_Y_train, 
-                       X_val=toy_X_val, 
-                       Y_val=toy_Y_val, 
-                       theta0=theta0, 
-                       num_epochs=num_epochs, 
-                       lr=lr)
-
-predictions = predict(toy_X_test, output['best_theta'])
-print(predictions)
-print(output['best_theta'])
